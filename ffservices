@@ -1,0 +1,45 @@
+#!/usr/bin/python
+import sys, time
+from core import config, event, log, ffservices, module, Network, Database, Timer
+from core.IRCMessage import IRCMessage
+
+try:
+	config.load(ffservices.configFileName)
+except IOError:
+	log.fatal("Missing config file! (%s)", ffservices.configFileName);
+	sys.exit(1);
+except SyntaxError as e:
+	log.fatal("Syntax error in config file!")
+	log.error("Syntax error in %s, line %d, character %d:", e.filename, e.lineno, e.offset)
+	log.error("%s", e.text.strip())
+	log.error("%s^", " "*(e.offset-1))
+	sys.exit(1)
+
+if(not Database.init()):
+	log.fatal("Can't connect to database")
+	sys.exit(1)
+
+module.loadConfigured()
+
+if(not Network.connect()):
+	log.fatal("Can't connect to the server - please ensure your configuration is correct and the server is available")
+	sys.exit(1)
+
+while(ffservices.exitCode is None):
+	ready=False
+	tickstart=time.time()
+	Timer.run()
+	if(Network.isConnected):
+		ready=Network.isReady(ffservices.secondsPerTick)
+	else:
+		time.sleep(ffservices.secondsPerTick)
+	
+	if(ready):
+		IRCMessage.processMessageQueue(Network.recv(ffservices.recvSize))
+		ticklen=time.time()-tickstart
+		if(ticklen>ffservices.secondsPerTick):
+			log.warning("Tick took too long to execute! (%fs>%fs)", ticklen, ffservices.secondsPerTick)
+
+Network.disconnect()
+module.unloadAll()
+sys.exit(ffservices.exitCode)

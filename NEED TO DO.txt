@@ -1,0 +1,7 @@
+Implement response to WHOIS in ffs_core
+test the SQUIT handler's [ffs_core_server] response to removal of a pseudoserver
+Implement STATS in ffs_core
+When a client quits (ffs_core_client?) remove them from any channels they're in
+implement INVITE
+docstrings!
+send emails for nick registrations if necessary
