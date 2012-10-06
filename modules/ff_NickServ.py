@@ -11,7 +11,7 @@ def module_start():
 	global db_cursor, nickserv
 	try:
 		db_cursor=Database.conn.cursor()
-		nickserv=Pseudoclient.create("NickServ", "NickServ", "nickserv", config.get("Services/Default Pseudoclient Hostname"), "Nickname registration and protection service")
+		nickserv=Pseudoclient.create("NickServ", "NickServ", "nickserv", config.get("Services/DefaultHostname"), "Nickname registration and protection service")
 		if(nickserv is None): raise Exception("A pseudoclient with this service name already exists (NickServ)")
 		if(nickserv is False): raise Exception("A pseudoclient with this nick already exists (NickServ)")
 		
@@ -113,7 +113,7 @@ def handle_cmd_register(source, command, c_text):
 		nickserv.sendMsg(source, "The \x02register\x02 command required at least one argument.")
 		return
 	
-	if(len(c_params)==1 and config.get("Services/ff_NickServ/Registration/Require Email")):
+	if(len(c_params)==1 and config.get("Services/ff_NickServ/Registration/RequireEmail")):
 		nickserv.sendMsg(source, "A valid email address is required to register your nickname.")
 		return
 	
@@ -136,19 +136,19 @@ def handle_cmd_register(source, command, c_text):
 			c_params[1] if len(c_params)>1 else None,
 			long(time.time()),
 			long(time.time()),
-			0 if config.get("Services/ff_NickServ/Registration/Require Email Confirmation") else 1,
-			0 if config.get("Services/ff_NickServ/Registration/Require Oper Activation") else 1,
+			0 if config.get("Services/ff_NickServ/Registration/RequireEmail Confirmation") else 1,
+			0 if config.get("Services/ff_NickServ/Registration/RequireOperActivation") else 1,
 			0,
 			None,
 			conf_code
 			))
 		
-		if(config.get("Services/ff_NickServ/Registration/Require Email Confirmation")):
+		if(config.get("Services/ff_NickServ/Registration/RequireEmail Confirmation")):
 			#todo: send email
 			#if email fails, delete the nick and display an error
 			nickserv.sendMsg(source, "An activation email has been sent to \x02%s\x02 with a confirmation code.  When you have recieved the email, you will have to enter the command \x02/msg NickServ confirm \x1fconfirmationcode\x1f\x02.  Until you do so, you will not be able to identify with this nickname.", c_params[1])
 		
-		if(config.get("Services/ff_NickServ/Registration/Require Oper Activation")):
+		if(config.get("Services/ff_NickServ/Registration/RequireOperActivation")):
 			nickserv.sendMsg(source, "You will not be able to identify using this nickname until an IRC operator has activated your account.")
 		
 		nickserv.sendMsg(source, "The nickname \x02%s\x02 has been registered using the password \x02%s\x02 - please memorize your password or keep it in a safe place, as it may be impossible to retrieve it.", source, c_params[0])

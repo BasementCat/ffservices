@@ -13,7 +13,7 @@ def module_start():
 	global db_cursor, statserv
 	try:
 		db_cursor=Database.conn.cursor()
-		statserv=Pseudoclient.create("StatServ", "StatServ", "statserv", config.get("Services/Default Pseudoclient Hostname"), "Network statistics tracker")
+		statserv=Pseudoclient.create("StatServ", "StatServ", "statserv", config.get("Services/DefaultHostname"), "Network statistics tracker")
 		if(statserv is None): raise Exception("A pseudoclient with this service name already exists (StatServ)")
 		if(statserv is False): raise Exception("A pseudoclient with this nick already exists (StatServ)")
 		

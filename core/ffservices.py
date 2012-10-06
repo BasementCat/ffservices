@@ -1,7 +1,7 @@
 from utils import lookup
 import os, time
 
-configFileName		=	"servicesconfig.py"
+configFileName		=	"servicesconfig.yml"
 version				=	"1.0.0"
 secondsPerTick		=	0.10
 recvSize			=	8192
