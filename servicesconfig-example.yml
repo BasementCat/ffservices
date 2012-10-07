@@ -1,0 +1,48 @@
+Network:
+    #Address or IP of the ircd with which to link
+    Server:   localhost
+    #Port to use for linking.  The ircd must allow servers on this port
+    Port:     7000
+    #Password to use for linking.  The same password that is sent here is expected to be received from the ircd
+    Password: password
+Server:
+    #Server name (must match the link block in the ircd configuration)
+    Name:         services.server
+    #Description of this server as shown to clients
+    Description:  Services server
+    #Server numeric (must be unique)
+    Numeric:      64
+MySQL:
+    Host:     localhost
+    Username: user
+    Password: pass
+    Database: database
+Modules:
+    #List of modules to load
+    - print_messages
+    - DevNullServ
+    - ff_NickServ
+    - ff_StatServ
+    - ffs_core
+    - ffs_core_log
+    - ffs_core_network_auth
+    - ffs_core_server
+    - ffs_core_client
+    - ffs_core_channel
+Services:
+    #This is the hostname that users will see in messages sent from services pseudoclients
+    DefaultHostname: network.service
+    ff_NickServ:
+        #Password hashing options for the nickserv module.  These cannot be changed once set!
+        Passwords:
+            #If null, passwords are stored in plaintext, otherwise any hash supported by the hashlib module can be specified
+            Hash:     ~
+            #If true, the user's nickname is used to salt the hash otherwise the value given here is used as a salt
+            Salt:     True
+        Registration:
+            #If true, users must supply an e-mail address to register a nickname
+            RequireEmail:                True
+            #If true, users must supply a registration code given in an e-mail sent to their address to finish registration
+            RequireEmailConfirmation:   False
+            #If true, users must have their account activated by an oper before they can use it
+            RequireOperActivation:      False
