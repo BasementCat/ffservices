@@ -1,6 +1,9 @@
+import logging
 from utils import lookup
-import Network, config, log, ffservices
+import Network, config, ffservices
 from IRCMessage import IRCMessage
+
+log=logging.getLogger(__name__)
 
 class Server:
 	known_servers={}
@@ -59,7 +62,7 @@ class Server:
 								svr.chanmodes[mode]=cm_types[cur_cm_type]
 							cur_cm_type+=1
 						#print svr.chanmodes
-						#log.edebug("Supported channel modes: %s", " ".join([mc+"="+t for mc,t in svr.chanmodes]))
+						#log.debug("Supported channel modes: %s", " ".join([mc+"="+t for mc,t in svr.chanmodes]))
 					else:
 						svr.protoctl.add(pctl)
 		return svr
@@ -79,7 +82,7 @@ class Server:
 		if(server.numeric>0): self.known_server_numerics[server.numeric]=server
 		if(server.hopcount==1):
 			self.linked_server=server
-			#log.edebug("Linked to %s", server.name)
+			#log.debug("Linked to %s", server.name)
 	
 	@classmethod
 	def removeServer(self, server):

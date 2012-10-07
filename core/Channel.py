@@ -1,6 +1,8 @@
+import time, logging
 from Server import Server
-import log, ffservices
-import time
+import ffservices
+
+log=logging.getLogger(__name__)
 
 class Channel:
 	known_channels={}
@@ -17,7 +19,7 @@ class Channel:
 		self.banlist=[]
 		self.exemptlist=[]
 		self.invexlist=[]
-		log.edebug("Creating new channel: %s @%d", name, int(timestamp))
+		log.debug("Creating new channel: %s @%d", name, int(timestamp))
 	
 	def setTopic(topic, who, ts=None):
 		self.topic=topic

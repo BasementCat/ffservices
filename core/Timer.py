@@ -1,6 +1,6 @@
-import time
-from core import log
+import time, logging
 
+log=logging.getLogger(__name__)
 timers_period=[]
 next_period_event=None
 next_period_event_time=0
@@ -8,7 +8,7 @@ next_period_event_time=0
 def add(func, period):
 	global timers_period
 	timers_period.append({"function":func, "period":period, "lastrun":0, "nextrun":(time.time()+period)})
-	log.edebug("Going to run %s every %fs", func, period)
+	log.debug("Going to run %s every %fs", func, period)
 	schedule_period_events()
 
 def remove(func, period=None):
@@ -31,7 +31,7 @@ def schedule_period_events():
 		if(next_period_event_time==0 or timers_period[idx]["nextrun"]<next_period_event_time):
 			next_period_event_time=timers_period[idx]["nextrun"]
 			next_period_event=idx
-			#log.edebug("Scheduling #%d (%s) for %f (now is %f)", idx, str(timers_period[next_period_event]["function"]), timers_period[next_period_event]["nextrun"], time.time())
+			#log.debug("Scheduling #%d (%s) for %f (now is %f)", idx, str(timers_period[next_period_event]["function"]), timers_period[next_period_event]["nextrun"], time.time())
 
 def run():
 	global timers_period, next_period_event, next_period_event_time

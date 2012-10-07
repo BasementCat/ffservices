@@ -1,6 +1,7 @@
-import MySQLdb
-import config, log
+import MySQLdb, logging
+import config
 
+log=logging.getLogger(__name__)
 conn=None
 
 def init():
@@ -13,7 +14,7 @@ def init():
 			db=config.get("MySQL/Database")
 			)
 	except MySQLdb.Error as e:
-		log.fatal("Mysql error %d: %s", e.args[0], e.args[1])
+		log.critical("Mysql error %d: %s", e.args[0], e.args[1])
 		return False
 	return True
 

@@ -1,7 +1,9 @@
-import base64, socket, struct, re
-import log, config, Network, ffservices
+import base64, socket, struct, re, logging
+import config, Network, ffservices
 from Server import Server
 from IRCMessage import IRCMessage
+
+log=logging.getLogger(__name__)
 
 class Client(object):
 	known_clients_nick={}
@@ -22,7 +24,7 @@ class Client(object):
 		self.ip=Client.int_to_ip(Client.decodeUnrealB64(nickipaddr, Client.decodeUnrealB64Char_NICKIP), True if len(nickipaddr)>9 else False) if nickipaddr else None
 		if(self.ip is not None): self.ip=Client.formatIPv6(self.ip) if len(nickipaddr)>9 else self.ip
 		self.realname=realname
-		#log.edebug("New client: %s!%s [%s -> %s -> %s -> %s] on %s, %s, %s", self.nick, self.username, self.ip, self.hostname, self.cloakedhost, self.virtualhost, self.server, self.usermodes, self.realname)
+		#log.debug("New client: %s!%s [%s -> %s -> %s -> %s] on %s, %s, %s", self.nick, self.username, self.ip, self.hostname, self.cloakedhost, self.virtualhost, self.server, self.usermodes, self.realname)
 	
 	def introduce(self):
 		svr=Server.getLinkedServer()
@@ -164,7 +166,7 @@ class Client(object):
 		i=0
 		for char in string:
 			num=decode_func(char)
-			#log.edebug("%s=%s", char, str(num))
+			#log.debug("%s=%s", char, str(num))
 			if(num is None): continue
 			r=(r<<6)|num
 			#r=r|(num<<(6*i))

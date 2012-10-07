@@ -1,4 +1,7 @@
-import config, ffservices, log, sys, event
+import logging
+import config, ffservices, sys, event
+
+log=logging.getLogger(__name__)
 
 modules={}
 

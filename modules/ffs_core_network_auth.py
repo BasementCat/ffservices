@@ -1,8 +1,9 @@
-from core import event, Network, log, ffservices, config
+import time, logging
+from core import event, Network, ffservices, config
 from core.IRCMessage import IRCMessage
 from core.Server import Server
-import time
 
+log=logging.getLogger(__name__)
 is_authed=False
 connected_protoctl=None
 #The core depends on some specific behaviors of this module -- specifically, when
@@ -44,7 +45,7 @@ def do_incoming_auth(eventname, message):
 		connected_protoctl=message
 	elif(message.command=="PASS"):
 		if(message.parameters[0]!=config.get("Network/Password")):
-			log.fatal("Password mismatch!  Expected '%s', got '%s'", config.get("Network/Password"), message.parameters[0])
+			log.critical("Password mismatch!  Expected '%s', got '%s'", config.get("Network/Password"), message.parameters[0])
 			Network.sendMsg(IRCMessage(':', config.get("Server/Name"), "ERROR", "Closing link: password mismatch"))
 			#Network.disconnect() #this is done in the main file
 			ffservices.shutdown(1)

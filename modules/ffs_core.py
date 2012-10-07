@@ -1,9 +1,11 @@
-from core import event, Network, log, config, ffservices
+import re, time, logging
+from core import event, Network, config, ffservices
 from core.Server import Server
 from core.Client import Client
 from core.Channel import Channel
 from core.IRCMessage import IRCMessage
-import re, time
+
+log=logging.getLogger(__name__)
 
 def module_start():
 	event.addHandler("Message/Incoming/PING", handle_ping)
@@ -50,4 +52,4 @@ def handle_modechg(eventname, message):
 		client=Client.findByNick(target)
 		if(client is None): return
 		client.changeModes(modelist)
-		log.edebug("%s changed modes of %s to %s", source, client.nick, client.usermodes)
+		log.debug("%s changed modes of %s to %s", source, client.nick, client.usermodes)

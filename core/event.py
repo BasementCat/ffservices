@@ -1,4 +1,6 @@
-import log
+import logging
+
+log=logging.getLogger(__name__)
 
 events={}
 event_ownership={}
@@ -11,7 +13,7 @@ def addHandler(*args):
 	args=list(args)
 	handler_function=args.pop()
 	for event in args:
-		log.edebug("Adding [%s] as handler for '%s'", handler_function, event)
+		log.debug("Adding [%s] as handler for '%s'", handler_function, event)
 		if(events.has_key(event)):
 			events[event].append(handler_function)
 		else:
@@ -23,7 +25,7 @@ def addHandler(*args):
 			event_ownership[handler_function.__module__]=[(event, handler_function)]
 
 def removeHandler(event, handler_function):
-	log.edebug("Removing [%s] as handler for '%s'", handler_function, event)
+	log.debug("Removing [%s] as handler for '%s'", handler_function, event)
 	if(not events.has_key(event)): return
 	try:
 		events[event].remove(handler_function)
@@ -55,7 +57,7 @@ def trigger(event, **kwargs):
 			for func in events[real_event]:
 				returnval=func(eventname=event, **kwargs)
 				if(stop_event):
-					log.logf(1, log.DEBUG, "Event '%s' (%s) stopped by [%s]", real_event, event, func)
+					log.debug("Event '%s' (%s) stopped by [%s]", real_event, event, func)
 					stop_event=0
 					eventStopped=1
 					return None

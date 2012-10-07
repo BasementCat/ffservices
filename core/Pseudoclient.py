@@ -1,8 +1,10 @@
-import Network, event, config, log
+import time, types, logging
+import Network, event, config
 from Client import Client
 from IRCMessage import IRCMessage
 from PseudoclientCommand import PseudoclientCommand
-import time, types
+
+log=logging.getLogger(__name__)
 
 def introduce_pseudoclients(eventname):
 	Pseudoclient.introduceAll()
@@ -12,7 +14,7 @@ def dispatch_pc_privmsgs(eventname, message):
 	for pc_name in message.parameters[:-1]:
 		pc=Pseudoclient.findByNick(pc_name)
 		if(pc is None):
-			log.edebug("Can't find pseudoclient for nick %s!", message.parameters[0])
+			log.debug("Can't find pseudoclient for nick %s!", message.parameters[0])
 			return
 		pc.privmsg(message)
 	
@@ -146,7 +148,7 @@ class Pseudoclient(Client):
 	
 	@classmethod
 	def add(self, pc):
-		#log.edebug("Adding Pseudoclient %s (%s -> %s)", pc.name, pc.nick, pc.nick.lower())
+		#log.debug("Adding Pseudoclient %s (%s -> %s)", pc.name, pc.nick, pc.nick.lower())
 		self.pseudoclients[pc.name]=pc
 		self.pseudoclients_bynick[pc.nick.lower()]=pc
 		Client.addClient(pc)

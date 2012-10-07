@@ -1,7 +1,10 @@
 #!/usr/bin/python
-import sys, time
-from core import config, event, log, ffservices, module, Network, Database, Timer
+import sys, time, logging
+from core import config, event, ffservices, module, Network, Database, Timer
 from core.IRCMessage import IRCMessage
+
+logging.basicConfig(level=logging.DEBUG)
+log=logging.getLogger(__name__)
 
 try:
 	config.load(ffservices.configFileName)
