@@ -1,4 +1,5 @@
-from core import config, log, event, Database, Network, ffservices
+from core import config, log, Database, Network, ffservices
+from core.event import Event
 from core.Pseudoclient import Pseudoclient
 from core.PseudoclientCommand import PseudoclientCommand
 from core.IRCMessage import IRCMessage

@@ -1,4 +1,5 @@
-from core import config, log, event, Database, Network, ffservices, Timer
+from core import config, log, Database, Network, ffservices, Timer
+from core.event import Event
 from core.Pseudoclient import Pseudoclient
 from core.PseudoclientCommand import PseudoclientCommand
 from core.IRCMessage import IRCMessage
@@ -52,7 +53,6 @@ def module_start():
 	#every 60 seconds works out to a little over 500,000 rows per year, which is
 	#pretty acceptible -- stats probably do not need to be kept longer than a few
 	#months, anyway
-	event.addHandler("Message/Incoming", do_log_channel_msgs)
 	return True
 
 def module_stop():
@@ -76,7 +76,8 @@ def do_lusers_update():
 	except Exception as e:
 		log.warning("Can't update LUSERS stats for statserv: %s", str(e))
 
-def do_log_channel_msgs(eventname, message):
+@Event.listen("Message/Incoming")
+def do_log_channel_msgs(event, message):
 	global db_cursor, statserv, my_channels
 	#this will end up being called on every incoming message (or at least quite a few of them) so we kind of have to do some extra sanity checks
 	if(len(message.parameters)<1): return #definitely not something we're interested in

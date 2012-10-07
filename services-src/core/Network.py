@@ -1,4 +1,5 @@
-import config, event, log
+import config, log
+from core.event import Event
 import socket, select
 from Server import Server
 from IRCMessage import IRCMessage
@@ -17,14 +18,14 @@ def connect():
 		log.error("Failure to connect to server: %s:%d : %s", config.get("Network/Server"), config.get("Network/Port"), str(e))
 		return False
 	
-	event.trigger("Network/Connect")
+	Event.trigger("Network/Connect")
 	return True
 
 def disconnect():
 	global svr_sock, isConnected, isAuthed
 	isConnected=False
 	isAuthed=False
-	event.trigger("Network/Disconnect")
+	Event.trigger("Network/Disconnect")
 	if(svr_sock is None): return True
 	svr_sock.close()
 	return True
@@ -61,7 +62,7 @@ def sendf(*args):
 
 def sendMsg(msg):
 	global svr_sock
-	event.trigger("Message/Outgoing/"+msg.command, message=msg)
+	Event.trigger("Message/Outgoing/"+msg.command, message=msg)
 	return svr_sock.send(str(msg))
 
 def recv(max_buf):

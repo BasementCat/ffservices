@@ -2,67 +2,82 @@ import logging
 
 log=logging.getLogger(__name__)
 
-events={}
-event_ownership={}
-eventStopped=0
-eventHadNoHandlers=0
-stop_event=0
+class Handler(object):
+	def __init__(self, event, callback):
+		self.event=event
+		self.callback=callback
 
-#def addHandler(event, handler_function):
-def addHandler(*args):
-	args=list(args)
-	handler_function=args.pop()
-	for event in args:
-		log.debug("Adding [%s] as handler for '%s'", handler_function, event)
-		if(events.has_key(event)):
-			events[event].append(handler_function)
-		else:
-			events[event]=[handler_function]
-	
-		if(event_ownership.has_key(handler_function.__module__)):
-			event_ownership[handler_function.__module__].append((event, handler_function))
-		else:
-			event_ownership[handler_function.__module__]=[(event, handler_function)]
+class Event(object):
+	events={}
 
-def removeHandler(event, handler_function):
-	log.debug("Removing [%s] as handler for '%s'", handler_function, event)
-	if(not events.has_key(event)): return
-	try:
-		events[event].remove(handler_function)
-	except ValueError:
-		pass
+	@classmethod
+	def listen(self, *args):
+		def handle_internal(callback):
+			for event in args:
+				log.debug("Adding %s in %s as handler for '%s'", callback.__name__, callback.__module__, event)
+				if not event in self.events:
+					self.events[event]=[callback]
+				else:
+					self.events[event].append(callback)
+			return callback
+		return handle_internal
 
-def removeModuleHandlers(module):
-	if(not event_ownership.has_key(module)): return
-	[removeHandler(event, func) for event, func in event_ownership[module]]
-	del(event_ownership[module])
+	@classmethod
+	def removeHandler(self, callback, event=None):
+		for eventName, handlerList in self.events.items():
+			if event is not None and eventName!=event:
+				continue
+			try:
+				handlerList.remove(callback)
+			except ValueError:
+				pass
 
-def stop():
-	global stop_event
-	stop_event=1
+	@classmethod
+	def removeModule(self, module):
+		for handlerList in self.events.values():
+			queue=[]
+			for handler in handlerList:
+				if handler.__module__==module:
+					queue.append(handler)
+			for handler in queue:
+				handlerList.remove(handler)
 
-def trigger(event, **kwargs):
-	global events, eventStopped, eventHadNoHandlers, stop_event
-	real_event=""
-	real_event_parts=[]
-	handlers_called=0
-	eventStopped=0
-	eventHadNoHandlers=0
-	stop_event=0
-	return_values=[]
-	for event_part in event.split("/"):
-		real_event_parts.append(event_part)
-		real_event="/".join(real_event_parts)
-		if(events.has_key(real_event)):
-			for func in events[real_event]:
-				returnval=func(eventname=event, **kwargs)
-				if(stop_event):
-					log.debug("Event '%s' (%s) stopped by [%s]", real_event, event, func)
-					stop_event=0
-					eventStopped=1
-					return None
-				if(event==real_event):
-					handlers_called+=1
-					return_values.append(returnval)
-	if(handlers_called==0): eventHadNoHandlers=1
-	return return_values
+	def __init__(self, eventName, *args, **kwargs):
+		self.eventName=eventName
+		self.handlersCalled=[]
+		self.additionalHandlersCalled=[]
+		self.stopped=False
+		self.returnValues=[]
+		self.eventArgs=args
+		self.eventKWArgs=kwargs
+
+	def __str__(self):
+		return self.eventName
+
+	def stop(self):
+		self.stopped=True
+
+	def run(self):
+		currentEvent=None
+		currentEventParts=[]
+		for part in self.eventName.split("/"):
+			currentEventParts.append(part)
+			currentEvent="/".join(currentEventParts)
+			if currentEvent in self.events:
+				for callback in self.events[currentEvent]:
+					out=callback(self, *self.eventArgs, **self.eventKWArgs)
+					if self.stopped:
+						log.debug("Event '%s' (%s) stopped by %s in %s", currentEvent, self.eventName, callback.__name__, callback.__module__)
+						self.stopped=callback
+						return
+					if self.eventName==currentEvent:
+						self.handlersCalled.append(callback)
+						self.returnValues.append(out)
+					else:
+						self.additionalHandlersCalled.append(callback)
+
+	@classmethod
+	def trigger(self, *args, **kwargs):
+		e=Event(*args, **kwargs)
+		e.run()
+		return e

@@ -1,5 +1,6 @@
 import logging
-import config, ffservices, sys, event
+import config, ffservices, sys
+from event import Event
 
 log=logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ def load(module_name):
 		module=sys.modules[real_module_name]
 	except Exception as e:
 		log.error("Module failed to load: %s: %s", module_name, str(e))
+		raise
 		return False
 	
 	try:
@@ -37,7 +39,7 @@ def unload(module_name):
 	module=modules[module_name]
 	del(modules[module_name])
 	
-	event.removeModuleHandlers("modules."+module_name)
+	Event.removeModule("modules."+module_name)
 	if(not module.module_stop()):
 		log.warning("Module %s failed to stop - this could lead to errors", module_name)
 		return False

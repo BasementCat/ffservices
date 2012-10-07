@@ -1,23 +1,18 @@
-from core import event, Network, log, config, ffservices
+from core import Network, log, config, ffservices
+from core.event import Event
 from core.Server import Server
 from core.Client import Client
 from core.IRCMessage import IRCMessage
 import re
 
 def module_start():
-	event.addHandler("Message/Incoming/NICK", handle_nickchg)
-	event.addHandler("Message/Incoming/QUIT", handle_quit)
-	event.addHandler("Message/Incoming/KILL", handle_kill)
-	event.addHandler(
-		"Message/Incoming/SETHOST", "Message/Incoming/CHGHOST",
-		"Message/Incoming/SETIDENT", "Message/Incoming/CHGIDENT",
-		"Message/Incoming/SETNAME", "Message/Incoming/CHGNAME",
-		handle_user_info_chg)
 	return True
 
-def module_stop(): return True
+def module_stop():
+	return True
 
-def handle_nickchg(eventname, message):
+@Event.listen("Message/Incoming/NICK")
+def handle_nickchg(event, message):
 	if(message.source is None or message.source==""):
 		#new nick
 		usermodes=virtualhost=cloakedhost=nickipaddr=None
@@ -49,13 +44,15 @@ def handle_nickchg(eventname, message):
 		#nick collision
 		client.kill("Nick Collision")
 
-def handle_quit(eventname, message):
+@Event.listen("Message/Incoming/QUIT")
+def handle_quit(event, message):
 	client=Client.findByNick(message.source)
 	if(client is None): return
 	log.info("Client exiting at %s: %s!%s@%s[%s]: %s", client.server, client.nick, client.username, client.ip, client.hostname, " ".join(message.parameters))
 	Client.removeClient(client)
 
-def handle_kill(eventname, message):
+@Event.listen("Message/Incoming/KILL")
+def handle_kill(event, message):
 	#when a services client is killed they will have to be reintroduced to the network
 	#because unreal will see the KILL message and treat it as though the client is
 	#killed, even if we don't want that
@@ -64,8 +61,12 @@ def handle_kill(eventname, message):
 	if(serv_client is None): return
 	serv_client.introduce()
 
-def handle_user_info_chg(eventname, message):
-	ev=eventname.split("/")[-1]
+@Event.listen(
+	"Message/Incoming/SETHOST", "Message/Incoming/CHGHOST",
+	"Message/Incoming/SETIDENT", "Message/Incoming/CHGIDENT",
+	"Message/Incoming/SETNAME", "Message/Incoming/CHGNAME")
+def handle_user_info_chg(event, message):
+	ev=event.eventName.split("/")[-1]
 	action=ev[:3]
 	prop=ev[3:]
 	target=message.source if action=="SET" else message.parameters[0]

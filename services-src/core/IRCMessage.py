@@ -1,4 +1,4 @@
-import event
+from event import Event
 import re, types
 
 class IRCMessage:
@@ -66,7 +66,7 @@ class IRCMessage:
 		for message_text in messages:
 			msg=IRCMessage.parse(message_text)
 			if(msg is None): continue #invalid message or something
-			event.trigger("Message/Incoming/"+msg.command, message=msg)
+			Event.trigger("Message/Incoming/"+msg.command, message=msg)
 	
 	@classmethod
 	def wrapText(self, full_text_arg, characters=80):

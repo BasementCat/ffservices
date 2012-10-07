@@ -1,5 +1,6 @@
 import time, logging
-from core import event, Network, ffservices, config
+from core import Network, ffservices, config
+from core.event import Event
 from core.IRCMessage import IRCMessage
 from core.Server import Server
 
@@ -11,14 +12,13 @@ connected_protoctl=None
 #and set Network.isAuthed to true
 
 def module_start():
-	event.addHandler("Network/Connect", do_net_send_auth)
-	event.addHandler("Network/Disconnect", do_net_disconnect)
-	event.addHandler("Message/Incoming/PROTOCTL", "Message/Incoming/PASS", "Message/Incoming/SERVER", do_incoming_auth)
 	return True
 
-def module_stop(): return True
+def module_stop():
+	return True
 
-def do_net_send_auth(eventname):
+@Event.listen("Network/Connect")
+def do_net_send_auth(event):
 	Network.sendMsg(IRCMessage(None, None, 'pass', config.get("Network/Password")))
 	pctl=list(ffservices.protoctl)
 	pctl.append("NICKCHARS=%s" % ",".join(ffservices.pro_nickchars))
@@ -34,12 +34,14 @@ def do_net_send_auth(eventname):
 			)
 		))
 
-def do_net_disconnect(eventname):
+@Event.listen("Network/Disconnect")
+def do_net_disconnect(event):
 	global is_authed
 	is_authed=False
 	Server.removeAllServers()
 
-def do_incoming_auth(eventname, message):
+@Event.listen("Message/Incoming/PROTOCTL", "Message/Incoming/PASS", "Message/Incoming/SERVER")
+def do_incoming_auth(event, message):
 	global is_authed, connected_protoctl
 	if(message.command=="PROTOCTL"):
 		connected_protoctl=message
@@ -53,7 +55,7 @@ def do_incoming_auth(eventname, message):
 		if(is_authed): return
 		is_authed=True
 		Server.addServer(Server.createServerFromMessage(message, connected_protoctl))
-		event.trigger("Network/LinkEstablished")
+		Event.trigger("Network/LinkEstablished")
 		Network.isAuthed=True
 		#anything that watches for this event should do things like send user info (NICK),
 		#channel membership, channel info, modes, etc at this point

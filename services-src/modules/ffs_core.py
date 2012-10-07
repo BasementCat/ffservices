@@ -1,5 +1,6 @@
 import re, time, logging
-from core import event, Network, config, ffservices
+from core import Network, config, ffservices
+from core.event import Event
 from core.Server import Server
 from core.Client import Client
 from core.Channel import Channel
@@ -8,24 +9,25 @@ from core.IRCMessage import IRCMessage
 log=logging.getLogger(__name__)
 
 def module_start():
-	event.addHandler("Message/Incoming/PING", handle_ping)
-	event.addHandler("Message/Incoming/MODE", "Message/Incoming/UMODE2", handle_modechg)
 	return True
 
-def module_stop(): return True
+def module_stop():
+	return True
 
-def handle_ping(eventname, message):
+@Event.listen("Message/Incoming/PING")
+def handle_ping(event, message):
 	if(len(message.parameters)>1):
 		Network.sendf("pong", *message.parameters.reverse())
 	else:
 		Network.sendf("pong", config.get("Server/Name"))
 
-def handle_modechg(eventname, message):
+@Event.listen("Message/Incoming/MODE", "Message/Incoming/UMODE2")
+def handle_modechg(event, message):
 	target_is_channel=False
 	source=message.source
 	target=modelist=None
 	params=[]
-	if(eventname.split("/")[-1]=="UMODE2"):
+	if(event.eventName.split("/")[-1]=="UMODE2"):
 		target=source
 		modelist=message.parameters[0]
 	else:

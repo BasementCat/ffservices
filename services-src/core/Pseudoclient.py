@@ -1,14 +1,17 @@
 import time, types, logging
-import Network, event, config
+import Network, config
+from core.event import Event
 from Client import Client
 from IRCMessage import IRCMessage
 from PseudoclientCommand import PseudoclientCommand
 
 log=logging.getLogger(__name__)
 
+@Event.listen("Network/LinkEstablished")
 def introduce_pseudoclients(eventname):
 	Pseudoclient.introduceAll()
 
+@Event.listen("Message/Incoming/PRIVMSG")
 def dispatch_pc_privmsgs(eventname, message):
 	log.debug("Got privmsg: %s", str(message).strip())
 	for pc_name in message.parameters[:-1]:
@@ -18,9 +21,6 @@ def dispatch_pc_privmsgs(eventname, message):
 			return
 		pc.privmsg(message)
 	
-event.addHandler("Network/LinkEstablished", introduce_pseudoclients)
-event.addHandler("Message/Incoming/PRIVMSG", dispatch_pc_privmsgs)
-
 class Pseudoclient(Client):
 	pseudoclients={}
 	pseudoclients_bynick={}

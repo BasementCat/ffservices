@@ -1,4 +1,5 @@
-from core import event, Network, log, config, ffservices
+from core import Network, log, config, ffservices
+from core.event import Event
 from core.Server import Server
 from core.Client import Client
 from core.Channel import Channel
@@ -13,15 +14,13 @@ sjoin_prefix_to_mode={"*":"q", "~":"a", "@":"o", "%":"h", "+":"v", "&":"b", "\""
 #INVITE should be implemented here as well -- probably not though, since we don't need to respond to invites ourself
 
 def module_start():
-	event.addHandler("Message/Incoming/SJOIN", handle_sjoin)
-	event.addHandler("Message/Incoming/JOIN", handle_join)
-	event.addHandler("Message/Incoming/PART", "Message/Incoming/KICK", handle_leave)
-	event.addHandler("Message/Incoming/TOPIC", handle_topicchg)
 	return True
 
-def module_stop(): return True
+def module_stop():
+	return True
 
-def handle_sjoin(eventname, message):
+Event.listen("Message/Incoming/SJOIN")
+def handle_sjoin(event, message):
 	chan_name=message.parameters[1]
 	timestamp=message.parameters[0]
 	chan=Channel.findByName(chan_name)
@@ -60,7 +59,8 @@ def handle_sjoin(eventname, message):
 	
 	if(len(new_modes)>0): chan.setModes("+"+"".join(new_modes), new_params)
 
-def handle_join(eventname, message):
+Event.listen("Message/Incoming/JOIN")
+def handle_join(event, message):
 	client=Client.findByNick(message.source)
 	if(client is None): return
 	chan=Channel.findByName(message.parameters[0])
@@ -70,7 +70,8 @@ def handle_join(eventname, message):
 	chan.addClient(client)
 	log.debug("%s has joined %s", client.nick, chan.name)
 
-def handle_leave(eventname, message):
+Event.listen("Message/Incoming/PART", "Message/Incoming/KICK")
+def handle_leave(event, message):
 	source=Client.findByNick(message.source)
 	if(source is None): source=Server.findByName(message.source)
 	if(source is None): return
@@ -91,7 +92,8 @@ def handle_leave(eventname, message):
 		)
 	targetchan.removeClient(targetuser)
 
-def handle_topicchg(eventname, message):
+Event.listen("Message/Incoming/TOPIC")
+def handle_topicchg(event, message):
 	chan_name, who, ts, topic=message.parameters
 	chan=Channel.findByName(chan_name)
 	if(chan is None): return
