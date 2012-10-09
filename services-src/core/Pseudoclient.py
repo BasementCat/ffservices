@@ -168,7 +168,7 @@ class Pseudoclient(Client):
 		del self.pseudoclients[self.name]
 		del self.pseudoclients_bynick[self.nick.lower()]
 		Client.removeClient(self)
-		Network.sendMsg(":", super(Pseudoclient, self).nick, "QUIT", reason)
+		Network.sendMsg(IRCMessage(":", self.nick, "QUIT", reason))
 	
 	@classmethod
 	def findByNick(self, nick):

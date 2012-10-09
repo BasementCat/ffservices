@@ -1,6 +1,6 @@
 #!/usr/bin/python
-import sys, time, logging
-from core import config, event, ffservices, module, Network, Database, Timer
+import sys, time, logging, signal, os
+from core import config, event, ffservices, module, Network, Database, Timer, daemon
 from core.IRCMessage import IRCMessage
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,21 +28,28 @@ if(not Network.connect()):
 	log.fatal("Can't connect to the server - please ensure your configuration is correct and the server is available")
 	sys.exit(1)
 
-while(ffservices.exitCode is None):
-	ready=False
-	tickstart=time.time()
-	Timer.run()
-	if(Network.isConnected):
-		ready=Network.isReady(ffservices.secondsPerTick)
-	else:
-		time.sleep(ffservices.secondsPerTick)
-	
-	if(ready):
-		IRCMessage.processMessageQueue(Network.recv(ffservices.recvSize))
-		ticklen=time.time()-tickstart
-		if(ticklen>ffservices.secondsPerTick):
-			log.warning("Tick took too long to execute! (%fs>%fs)", ticklen, ffservices.secondsPerTick)
+@daemon.sighandler('SIGINT')
+def sigint_handler(signo, frame):
+	ffservices.shutdown(1)
 
-Network.disconnect()
+try:
+	while(ffservices.exitCode is None):
+		ready=False
+		tickstart=time.time()
+		Timer.run()
+		if(Network.isConnected):
+			ready=Network.isReady(ffservices.secondsPerTick)
+		else:
+			time.sleep(ffservices.secondsPerTick)
+		
+		if(ready):
+			IRCMessage.processMessageQueue(Network.recv(ffservices.recvSize))
+			ticklen=time.time()-tickstart
+			if(ticklen>ffservices.secondsPerTick):
+				log.warning("Tick took too long to execute! (%fs>%fs)", ticklen, ffservices.secondsPerTick)
+except KeyboardInterrupt:
+	ffservices.shutdown(1)
+
 module.unloadAll()
+Network.disconnect()
 sys.exit(ffservices.exitCode)
